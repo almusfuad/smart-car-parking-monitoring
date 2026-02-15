@@ -90,3 +90,41 @@ class ParkingLog(models.Model):
         indexes = [
             models.Index(fields=['timestamp']),
         ]
+
+
+
+class Alert(models.Model):
+    
+    INFO = 'INFO'
+    WARNING = 'WARNING'
+    CRITICAL = 'CRITICAL'
+
+    SEVERITY_CHOICES = [
+        (INFO, 'Info'),
+        (WARNING, 'Warning'),
+        (CRITICAL, 'Critical'),
+    ]
+
+
+    device = models.ForeignKey(
+        Device,
+        on_delete=models.CASCADE,
+        related_name='alerts',
+    )
+    message = models.CharField(max_length=255)
+    severity = models.CharField(
+        max_length=10,
+        choices=SEVERITY_CHOICES,
+    )
+    is_active = models.BooleanField(default=True)
+    acknowledged = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["device", "message", "is_active"],
+                condition=models.Q(is_active=True),
+                name="unique_active_alert"
+            )
+        ]
