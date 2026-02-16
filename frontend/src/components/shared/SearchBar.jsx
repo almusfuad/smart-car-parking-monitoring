@@ -7,7 +7,7 @@ import React, { useState, useEffect } from 'react';
  * @param {string} placeholder - Placeholder text
  * @param {number} debounceMs - Debounce delay in milliseconds (default: 500)
  */
-const SearchBar = ({ onSearch, placeholder = 'Search...', debounceMs = 500 }) => {
+const SearchBar = React.memo(({ onSearch, placeholder = 'Search...', debounceMs = 500 }) => {
   const [searchValue, setSearchValue] = useState('');
 
   useEffect(() => {
@@ -68,6 +68,8 @@ const SearchBar = ({ onSearch, placeholder = 'Search...', debounceMs = 500 }) =>
       )}
     </div>
   );
-};
+});
+
+SearchBar.displayName = 'SearchBar';
 
 export default SearchBar;

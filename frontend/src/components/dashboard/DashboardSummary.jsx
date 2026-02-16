@@ -1,9 +1,10 @@
+import React from 'react';
+
 /**
  * DashboardSummary Component
  * Displays key metrics in summary cards
  */
-
-const DashboardSummary = ({ data, loading }) => {
+const DashboardSummary = React.memo(({ data, loading }) => {
   if (loading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
@@ -89,6 +90,8 @@ const DashboardSummary = ({ data, loading }) => {
       ))}
     </div>
   );
-};
+});
+
+DashboardSummary.displayName = 'DashboardSummary';
 
 export default DashboardSummary;

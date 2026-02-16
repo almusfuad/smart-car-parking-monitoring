@@ -1,10 +1,11 @@
+import React from 'react';
 import { format } from 'date-fns';
 
 /**
  * DateFilter Component
  * Allows users to select a date for filtering dashboard data
  */
-const DateFilter = ({ selectedDate, onDateChange }) => {
+const DateFilter = React.memo(({ selectedDate, onDateChange }) => {
   const handleDateChange = (e) => {
     onDateChange(e.target.value);
   };
@@ -38,6 +39,8 @@ const DateFilter = ({ selectedDate, onDateChange }) => {
       </div>
     </div>
   );
-};
+});
+
+DateFilter.displayName = 'DateFilter';
 
 export default DateFilter;

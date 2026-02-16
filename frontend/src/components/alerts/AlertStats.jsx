@@ -5,7 +5,7 @@ import React from 'react';
  * Displays summary statistics for alerts
  * @param {Object} stats - Statistics object with counts
  */
-const AlertStats = ({ stats }) => {
+const AlertStats = React.memo(({ stats }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
       {/* Total Alerts */}
@@ -33,6 +33,8 @@ const AlertStats = ({ stats }) => {
       </div>
     </div>
   );
-};
+});
+
+AlertStats.displayName = 'AlertStats';
 
 export default AlertStats;

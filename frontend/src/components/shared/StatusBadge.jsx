@@ -1,10 +1,11 @@
+import React from 'react';
+
 /**
  * StatusBadge Component
  * Displays status indicators with color coding
  * Supports: OK (green), WARNING (yellow), CRITICAL (red)
  */
-
-const StatusBadge = ({ status, size = 'md' }) => {
+const StatusBadge = React.memo(({ status, size = 'md' }) => {
   const getStatusClasses = () => {
     const baseClasses = 'inline-flex items-center gap-1 font-medium rounded-full';
     
@@ -42,6 +43,8 @@ const StatusBadge = ({ status, size = 'md' }) => {
       <span>{status}</span>
     </span>
   );
-};
+});
+
+StatusBadge.displayName = 'StatusBadge';
 
 export default StatusBadge;

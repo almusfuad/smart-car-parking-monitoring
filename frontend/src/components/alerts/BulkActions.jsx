@@ -6,7 +6,7 @@ import React from 'react';
  * @param {number} selectedCount - Number of selected alerts
  * @param {Function} onBulkAcknowledge - Callback for bulk acknowledge action
  */
-const BulkActions = ({ selectedCount, onBulkAcknowledge }) => {
+const BulkActions = React.memo(({ selectedCount, onBulkAcknowledge }) => {
   if (selectedCount === 0) {
     return null;
   }
@@ -24,6 +24,8 @@ const BulkActions = ({ selectedCount, onBulkAcknowledge }) => {
       </button>
     </div>
   );
-};
+});
+
+BulkActions.displayName = 'BulkActions';
 
 export default BulkActions;

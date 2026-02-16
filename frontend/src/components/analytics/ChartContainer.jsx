@@ -10,7 +10,7 @@ import React from 'react';
  * @param {React.ReactNode} summary - Optional summary section to display above chart
  * @param {React.ReactNode} children - Chart content to render when loaded
  */
-const ChartContainer = ({ title, loading, error, summary, children }) => {
+const ChartContainer = React.memo(({ title, loading, error, summary, children }) => {
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       <div className="flex items-center justify-between mb-4">
@@ -33,6 +33,8 @@ const ChartContainer = ({ title, loading, error, summary, children }) => {
       {!loading && !error && children}
     </div>
   );
-};
+});
+
+ChartContainer.displayName = 'ChartContainer';
 
 export default ChartContainer;

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import useLiveDevices from '../../hooks/useLiveDevices';
 import DeviceCard from './DeviceCard';
 import DeviceStats from './DeviceStats';
@@ -14,11 +14,11 @@ import { exportLiveDevicesData } from '../../utils/exportHelpers';
 const LiveMonitoring = () => {
   const { data, loading, error, lastUpdated, refresh } = useLiveDevices();
 
-  const handleExport = (format) => {
+  const handleExport = useCallback((format) => {
     if (data?.devices) {
       exportLiveDevicesData(data.devices, format);
     }
-  };
+  }, [data?.devices]);
 
   if (loading && !data) {
     return (

@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 
 /**
  * AlertFilters Component
@@ -6,7 +6,7 @@ import React, { useCallback, useMemo } from 'react';
  * @param {Function} onSeverityChange - Callback when severity filter changes
  * @param {Function} onStatusChange - Callback when status filter changes
  */
-const AlertFilters = ({ onSeverityChange, onStatusChange }) => {
+const AlertFilters = React.memo(({ onSeverityChange, onStatusChange }) => {
   const handleSeverityChange = useCallback((e) => {
     onSeverityChange(e.target.value || undefined);
   }, [onSeverityChange]);
@@ -39,6 +39,8 @@ const AlertFilters = ({ onSeverityChange, onStatusChange }) => {
       </select>
     </div>
   );
-};
+});
+
+AlertFilters.displayName = 'AlertFilters';
 
 export default AlertFilters;
