@@ -5,7 +5,9 @@ import DateFilter from '../components/DateFilter';
 import ZonePerformanceTable from '../components/ZonePerformanceTable';
 import DeviceHeartbeat from '../components/DeviceHeartbeat';
 import FilterPanel from '../components/FilterPanel';
+import ExportButton from '../components/ExportButton';
 import useDashboardData from '../hooks/useDashboardData';
+import { exportZonesData, exportDevicesData, exportDashboardSummary } from '../utils/exportHelpers';
 
 const Dashboard = () => {
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
@@ -20,16 +22,39 @@ const Dashboard = () => {
     setFilters(newFilters);
   }, []);
 
+  const handleExportAll = (format) => {
+    exportDashboardSummary(data.summary, data.zones, data.devices, format);
+  };
+
+  const handleExportZones = (format) => {
+    if (data.zones) {
+      exportZonesData(data.zones, format);
+    }
+  };
+
+  const handleExportDevices = (format) => {
+    if (data.devices) {
+      exportDevicesData(data.devices, format);
+    }
+  };
+
   return (
     <div>
       {/* Dashboard Header */}
-      <div className="mb-6">
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">
-          Smart Parking Dashboard
-        </h2>
-        <p className="text-gray-600">
-          Monitor parking zones, devices, and system performance in real-time
-        </p>
+      <div className="mb-6 flex justify-between items-start">
+        <div>
+          <h2 className="text-3xl font-bold text-gray-800 mb-2">
+            Smart Parking Dashboard
+          </h2>
+          <p className="text-gray-600">
+            Monitor parking zones, devices, and system performance in real-time
+          </p>
+        </div>
+        <ExportButton 
+          onExport={handleExportAll} 
+          disabled={loading || !data.zones || !data.devices}
+          label="Export All"
+        />
       </div>
 
       {/* Date Filter */}
@@ -56,11 +81,27 @@ const Dashboard = () => {
 
       {/* Zone Performance Table */}
       <div className="mb-6">
+        <div className="flex justify-between items-center mb-3">
+          <h3 className="text-xl font-semibold text-gray-800">Zone Performance</h3>
+          <ExportButton 
+            onExport={handleExportZones} 
+            disabled={loading || !data.zones || data.zones.length === 0}
+            label="Export Zones"
+          />
+        </div>
         <ZonePerformanceTable zones={data.zones} loading={loading} />
       </div>
 
       {/* Device Heartbeat Monitor */}
       <div className="mb-6">
+        <div className="flex justify-between items-center mb-3">
+          <h3 className="text-xl font-semibold text-gray-800">Device Status</h3>
+          <ExportButton 
+            onExport={handleExportDevices} 
+            disabled={loading || !data.devices || data.devices.length === 0}
+            label="Export Devices"
+          />
+        </div>
         <DeviceHeartbeat devices={data.devices} loading={loading} />
       </div>
 

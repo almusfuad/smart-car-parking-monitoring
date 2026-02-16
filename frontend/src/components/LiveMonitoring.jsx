@@ -1,7 +1,9 @@
 import React from 'react';
 import useLiveDevices from '../hooks/useLiveDevices';
 import StatusBadge from './StatusBadge';
+import ExportButton from './ExportButton';
 import { formatDistanceToNow } from 'date-fns';
+import { exportLiveDevicesData } from '../utils/exportHelpers';
 
 /**
  * LiveMonitoring Component
@@ -9,6 +11,12 @@ import { formatDistanceToNow } from 'date-fns';
  */
 const LiveMonitoring = () => {
   const { data, loading, error, lastUpdated, refresh } = useLiveDevices();
+
+  const handleExport = (format) => {
+    if (data?.devices) {
+      exportLiveDevicesData(data.devices, format);
+    }
+  };
 
   if (loading && !data) {
     return (
@@ -63,6 +71,12 @@ const LiveMonitoring = () => {
               Updated {formatDistanceToNow(lastUpdated, { addSuffix: true })}
             </div>
           )}
+          
+          <ExportButton 
+            onExport={handleExport} 
+            disabled={loading || !data?.devices || data.devices.length === 0}
+            label="Export"
+          />
           
           <button
             onClick={refresh}
