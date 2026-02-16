@@ -8,7 +8,9 @@ from .views import (
     TelemetryAPIView,
     ParkingLogAPIView,
     BulkTelemetryAPIView,
-    DashboardSummaryAPIView
+    DashboardSummaryAPIView,
+    ZonesPerformanceAPIView,
+    DevicesHeartbeatAPIView,
 )
 
 
@@ -17,4 +19,6 @@ urlpatterns = [
     path('telemetry/bulk/', BulkTelemetryAPIView.as_view(), name='bulk-telemetry'),
     path('parking-log/', ParkingLogAPIView.as_view(), name='parking-log'),
     path('dashboard/summary/', DashboardSummaryAPIView.as_view(), name='dashboard-summary'),
+    path('dashboard/zones-performances/', ZonesPerformanceAPIView.as_view(), name='zones-performances'),
+    path('dashboard/devices-hearbeat/', DevicesHeartbeatAPIView.as_view(), name='devices-heartbeat'),
 ]

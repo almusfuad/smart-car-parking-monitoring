@@ -30,6 +30,36 @@ const api = {
       throw error;
     }
   },
+
+  /**
+   * GET /api/dashboard/zones-performances/
+   * Fetches zone-wise performance metrics
+   * @returns {Promise} Array of zone performance data
+   */
+  getZonesPerformance: async () => {
+    try {
+      const response = await apiClient.get('/dashboard/zones-performances/');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching zones performance:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * GET /api/dashboard/devices-hearbeat/
+   * Fetches device status with last-seen timestamps
+   * @returns {Promise} Array of device heartbeat data
+   */
+  getDevicesHeartbeat: async () => {
+    try {
+      const response = await apiClient.get('/dashboard/devices-hearbeat/');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching devices heartbeat:', error);
+      throw error;
+    }
+  },
 };
 
 export default api;

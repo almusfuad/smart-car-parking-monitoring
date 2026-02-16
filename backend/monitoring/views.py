@@ -9,11 +9,11 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.db import transaction
-from django.db.models import Count
+from django.db.models import Count, Q, Max
 from django.utils import timezone
-from datetime import datetime
+from datetime import datetime, timedelta
 
-from .models import TelemetryData, ParkingLog, Alert, Device
+from .models import TelemetryData, ParkingLog, Alert, Device, ParkingZone
 from .serializers import TelemetrySerializer, ParkingLogSerializer
 from .services import check_high_power, calculate_device_health
 
@@ -94,3 +94,91 @@ class DashboardSummaryAPIView(APIView):
             "alerts_count": alerts_count,
         })
 
+
+class ZonesPerformanceAPIView(APIView):
+
+    def get(self, request):
+        zones = ParkingZone.objects.select_related('facility').prefetch_related('devices').all()
+        
+        zones_data = []
+        for zone in zones:
+            # Get device count in this zone
+            total_devices = zone.devices.filter(is_active=True).count()
+            
+            # Get current occupancy from latest parking logs
+            occupied_slots = ParkingLog.objects.filter(
+                device__zone=zone,
+                is_occupied=True,
+            ).values('device').distinct().count()
+            
+            # Calculate utilization percentage
+            utilization = (occupied_slots / zone.daily_capacity * 100) if zone.daily_capacity > 0 else 0
+            
+            # Get active alerts for this zone
+            active_alerts = Alert.objects.filter(
+                device__zone=zone,
+                is_active=True
+            ).count()
+            
+            zones_data.append({
+                'id': zone.id,
+                'name': zone.name,
+                'facility': zone.facility.name,
+                'total_devices': total_devices,
+                'occupied_slots': occupied_slots,
+                'daily_capacity': zone.daily_capacity,
+                'utilization_percentage': round(utilization, 2),
+                'active_alerts': active_alerts,
+            })
+        
+        return Response(zones_data)
+
+
+class DevicesHeartbeatAPIView(APIView):
+
+    def get(self, request):
+        devices = Device.objects.select_related('zone__facility').all()
+        now = timezone.now()
+        
+        devices_data = []
+        for device in devices:
+            # Determine device status based on last_seen
+            if not device.last_seen:
+                status_label = 'CRITICAL'
+                status_message = 'Never seen'
+            else:
+                time_diff = (now - device.last_seen).total_seconds()
+                if time_diff <= 120:  # 2 minutes
+                    status_label = 'OK'
+                    status_message = 'Online'
+                elif time_diff <= 600:  # 10 minutes
+                    status_label = 'WARNING'
+                    status_message = 'Delayed'
+                else:
+                    status_label = 'CRITICAL'
+                    status_message = 'Offline'
+            
+            # Get active alerts for this device
+            alerts = Alert.objects.filter(
+                device=device,
+                is_active=True
+            ).values('severity', 'message')
+            
+            # Calculate health score
+            health_score = calculate_device_health(device)
+            
+            devices_data.append({
+                'id': device.id,
+                'code': device.code,
+                'zone': device.zone.name,
+                'facility': device.zone.facility.name,
+                'is_active': device.is_active,
+                'last_seen': device.last_seen.isoformat() if device.last_seen else None,
+                'status': status_label,
+                'status_message': status_message,
+                'health_score': health_score,
+                'active_alerts': list(alerts),
+                'alerts_count': len(alerts),
+            })
+        
+        return Response(devices_data)
