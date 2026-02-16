@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import api from '../../services/api';
 import SearchBar from '../shared/SearchBar';
+import useFacilitiesAndZones from '../../hooks/useFacilitiesAndZones';
+import useFilters from '../../hooks/useFilters';
 
 /**
  * FilterPanel Component
@@ -9,69 +10,33 @@ import SearchBar from '../shared/SearchBar';
  * @param {boolean} showStatusFilter - Whether to show status filter (for devices)
  */
 const FilterPanel = ({ onFilterChange, showStatusFilter = false }) => {
-  const [facilities, setFacilities] = useState([]);
-  const [zones, setZones] = useState([]);
-  const [selectedFacility, setSelectedFacility] = useState('');
-  const [selectedZone, setSelectedZone] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState('name');
-  const [sortOrder, setSortOrder] = useState('asc');
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Fetch facilities on mount
-  useEffect(() => {
-    const fetchFacilities = async () => {
-      try {
-        const data = await api.getFacilities();
-        setFacilities(data);
-      } catch (error) {
-        console.error('Error loading facilities:', error);
-      }
-    };
-    fetchFacilities();
-  }, []);
+  // Initialize filters with useFilters hook
+  const { filters, updateFilter, resetFilters, activeCount } = useFilters({
+    facility: '',
+    zone: '',
+    status: '',
+    search: '',
+    sort_by: 'name',
+    order: 'asc',
+  });
 
-  // Update zones when facility changes
-  useEffect(() => {
-    if (selectedFacility) {
-      const facility = facilities.find(f => f.id === parseInt(selectedFacility));
-      setZones(facility ? facility.zones : []);
-      setSelectedZone(''); // Reset zone when facility changes
-    } else {
-      setZones([]);
-      setSelectedZone('');
-    }
-  }, [selectedFacility, facilities]);
+  // Fetch facilities and zones using shared hook
+  const { facilities, zones } = useFacilitiesAndZones(filters.facility);
 
   // Notify parent of filter changes
   useEffect(() => {
-    const filters = {
-      ...(selectedFacility && { facility: selectedFacility }),
-      ...(selectedZone && { zone: selectedZone }),
-      ...(selectedStatus && { status: selectedStatus }),
-      ...(searchQuery && { search: searchQuery }),
-      sort_by: sortBy,
-      order: sortOrder,
+    const filterParams = {
+      ...(filters.facility && { facility: filters.facility }),
+      ...(filters.zone && { zone: filters.zone }),
+      ...(filters.status && { status: filters.status }),
+      ...(filters.search && { search: filters.search }),
+      sort_by: filters.sort_by,
+      order: filters.order,
     };
-    onFilterChange(filters);
-  }, [selectedFacility, selectedZone, selectedStatus, searchQuery, sortBy, sortOrder, onFilterChange]);
-
-  const handleReset = () => {
-    setSelectedFacility('');
-    setSelectedZone('');
-    setSelectedStatus('');
-    setSearchQuery('');
-    setSortBy('name');
-    setSortOrder('asc');
-  };
-
-  const activeFiltersCount = [
-    selectedFacility,
-    selectedZone,
-    selectedStatus,
-    searchQuery,
-  ].filter(Boolean).length;
+    onFilterChange(filterParams);
+  }, [filters, onFilterChange]);
 
   return (
     <div className="bg-white rounded-lg shadow-md p-4 mb-6">
@@ -79,16 +44,16 @@ const FilterPanel = ({ onFilterChange, showStatusFilter = false }) => {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
-          {activeFiltersCount > 0 && (
+          {activeCount > 0 && (
             <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
-              {activeFiltersCount} active
+              {activeCount} active
             </span>
           )}
         </div>
         <div className="flex items-center gap-2">
-          {activeFiltersCount > 0 && (
+          {activeCount > 0 && (
             <button
-              onClick={handleReset}
+              onClick={resetFilters}
               className="text-sm text-gray-600 hover:text-gray-900 underline"
             >
               Reset All
@@ -124,7 +89,7 @@ const FilterPanel = ({ onFilterChange, showStatusFilter = false }) => {
               Search
             </label>
             <SearchBar
-              onSearch={setSearchQuery}
+              onSearch={(value) => updateFilter('search', value)}
               placeholder="Search by name or code..."
             />
           </div>
@@ -137,8 +102,8 @@ const FilterPanel = ({ onFilterChange, showStatusFilter = false }) => {
                 Facility
               </label>
               <select
-                value={selectedFacility}
-                onChange={(e) => setSelectedFacility(e.target.value)}
+                value={filters.facility}
+                onChange={(e) => updateFilter('facility', e.target.value)}
                 className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">All Facilities</option>
@@ -156,9 +121,9 @@ const FilterPanel = ({ onFilterChange, showStatusFilter = false }) => {
                 Zone
               </label>
               <select
-                value={selectedZone}
-                onChange={(e) => setSelectedZone(e.target.value)}
-                disabled={!selectedFacility}
+                value={filters.zone}
+                onChange={(e) => updateFilter('zone', e.target.value)}
+                disabled={!filters.facility}
                 className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
                 <option value="">All Zones</option>
@@ -177,8 +142,8 @@ const FilterPanel = ({ onFilterChange, showStatusFilter = false }) => {
                   Status
                 </label>
                 <select
-                  value={selectedStatus}
-                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  value={filters.status}
+                  onChange={(e) => updateFilter('status', e.target.value)}
                   className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">All Status</option>
@@ -196,8 +161,8 @@ const FilterPanel = ({ onFilterChange, showStatusFilter = false }) => {
               </label>
               <div className="flex gap-2">
                 <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
+                  value={filters.sort_by}
+                  onChange={(e) => updateFilter('sort_by', e.target.value)}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="name">Name</option>
@@ -206,13 +171,13 @@ const FilterPanel = ({ onFilterChange, showStatusFilter = false }) => {
                   <option value="health">Health</option>
                 </select>
                 <button
-                  onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                  onClick={() => updateFilter('order', filters.order === 'asc' ? 'desc' : 'asc')}
                   className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                  title={sortOrder === 'asc' ? 'Ascending' : 'Descending'}
+                  title={filters.order === 'asc' ? 'Ascending' : 'Descending'}
                 >
                   <svg
                     className={`w-5 h-5 transform transition-transform ${
-                      sortOrder === 'desc' ? 'rotate-180' : ''
+                      filters.order === 'desc' ? 'rotate-180' : ''
                     }`}
                     fill="none"
                     stroke="currentColor"

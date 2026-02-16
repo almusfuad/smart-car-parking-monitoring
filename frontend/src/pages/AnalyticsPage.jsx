@@ -1,59 +1,28 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import HourlyUsageChart from '../components/analytics/charts/HourlyUsageChart';
 import OccupancyTrendChart from '../components/analytics/charts/OccupancyTrendChart';
 import DeviceHealthChart from '../components/analytics/charts/DeviceHealthChart';
-import api from '../services/api';
+import useFacilitiesAndZones from '../hooks/useFacilitiesAndZones';
+import useFilters from '../hooks/useFilters';
 
 const AnalyticsPage = () => {
-  const [facilities, setFacilities] = useState([]);
-  const [zones, setZones] = useState([]);
-  const [filters, setFilters] = useState({
+  const [days, setDays] = useState(7);
+
+  // Use shared hooks for filter management
+  const { filters, updateFilter, resetFilters: resetFilterState } = useFilters({
     facility: '',
     zone: '',
   });
-  const [days, setDays] = useState(7);
 
-  useEffect(() => {
-    fetchFacilities();
-  }, []);
-
-  useEffect(() => {
-    if (filters.facility) {
-      fetchZones();
-    } else {
-      setZones([]);
-      setFilters(prev => ({ ...prev, zone: '' }));
-    }
-  }, [filters.facility]);
-
-  const fetchFacilities = async () => {
-    try {
-      const data = await api.getFacilities();
-      setFacilities(data);
-    } catch (error) {
-      console.error('Error fetching facilities:', error);
-    }
-  };
-
-  const fetchZones = async () => {
-    try {
-      const data = await api.getZonesByFacility(filters.facility);
-      setZones(data);
-    } catch (error) {
-      console.error('Error fetching zones:', error);
-    }
-  };
-
-  const handleFilterChange = (key, value) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
-  };
+  // Fetch facilities and zones using shared hook
+  const { facilities, zones } = useFacilitiesAndZones(filters.facility);
 
   const handleDaysChange = (newDays) => {
     setDays(Number(newDays));
   };
 
   const handleResetFilters = () => {
-    setFilters({ facility: '', zone: '' });
+    resetFilterState();
     setDays(7);
   };
 
@@ -80,7 +49,7 @@ const AnalyticsPage = () => {
               </label>
               <select
                 value={filters.facility}
-                onChange={(e) => handleFilterChange('facility', e.target.value)}
+                onChange={(e) => updateFilter('facility', e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">All Facilities</option>
@@ -99,7 +68,7 @@ const AnalyticsPage = () => {
               </label>
               <select
                 value={filters.zone}
-                onChange={(e) => handleFilterChange('zone', e.target.value)}
+                onChange={(e) => updateFilter('zone', e.target.value)}
                 disabled={!filters.facility}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
