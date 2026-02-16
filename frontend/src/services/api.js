@@ -149,6 +149,64 @@ const api = {
       throw error;
     }
   },
+
+  /**
+   * Get hourly parking usage data for the last 24 hours
+   * @param {Object} filters - Optional filters (facility, zone)
+   * @returns {Promise} Hourly usage data with occupancy rates
+   */
+  getHourlyUsage: async (filters = {}) => {
+    try {
+      const params = {};
+      if (filters.facility) params.facility = filters.facility;
+      if (filters.zone) params.zone = filters.zone;
+
+      const response = await apiClient.get('/analytics/hourly-usage/', { params });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching hourly usage:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get occupancy trend data over specified number of days
+   * @param {number} days - Number of days to fetch (default: 7)
+   * @param {Object} filters - Optional filters (facility, zone)
+   * @returns {Promise} Daily occupancy trend data
+   */
+  getOccupancyTrend: async (days = 7, filters = {}) => {
+    try {
+      const params = { days };
+      if (filters.facility) params.facility = filters.facility;
+      if (filters.zone) params.zone = filters.zone;
+
+      const response = await apiClient.get('/analytics/occupancy-trend/', { params });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching occupancy trend:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get device health metrics and status distribution
+   * @param {Object} filters - Optional filters (facility, zone)
+   * @returns {Promise} Device health data with metrics and categories
+   */
+  getDeviceHealth: async (filters = {}) => {
+    try {
+      const params = {};
+      if (filters.facility) params.facility = filters.facility;
+      if (filters.zone) params.zone = filters.zone;
+
+      const response = await apiClient.get('/analytics/device-health/', { params });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching device health:', error);
+      throw error;
+    }
+  },
 };
 
 export default api;

@@ -16,6 +16,9 @@ from .views import (
     AlertListAPIView,
     AlertAcknowledgeAPIView,
     AlertBulkAcknowledgeAPIView,
+    HourlyUsageAPIView,
+    OccupancyTrendAPIView,
+    DeviceHealthAPIView,
 )
 
 
@@ -31,4 +34,7 @@ urlpatterns = [
     path('alerts/', AlertListAPIView.as_view(), name='alert-list'),
     path('alerts/<int:pk>/acknowledge/', AlertAcknowledgeAPIView.as_view(), name='alert-acknowledge'),
     path('alerts/bulk-acknowledge/', AlertBulkAcknowledgeAPIView.as_view(), name='alert-bulk-acknowledge'),
+    path('analytics/hourly-usage/', HourlyUsageAPIView.as_view(), name='hourly-usage'),
+    path('analytics/occupancy-trend/', OccupancyTrendAPIView.as_view(), name='occupancy-trend'),
+    path('analytics/device-health/', DeviceHealthAPIView.as_view(), name='device-health'),
 ]
