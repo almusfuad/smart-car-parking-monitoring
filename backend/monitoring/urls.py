@@ -11,6 +11,7 @@ from .views import (
     DashboardSummaryAPIView,
     ZonesPerformanceAPIView,
     DevicesHeartbeatAPIView,
+    LiveDeviceStatusAPIView,
 )
 
 
@@ -21,4 +22,5 @@ urlpatterns = [
     path('dashboard/summary/', DashboardSummaryAPIView.as_view(), name='dashboard-summary'),
     path('dashboard/zones-performances/', ZonesPerformanceAPIView.as_view(), name='zones-performances'),
     path('dashboard/devices-hearbeat/', DevicesHeartbeatAPIView.as_view(), name='devices-heartbeat'),
+    path('devices/live-status/', LiveDeviceStatusAPIView.as_view(), name='live-device-status'),
 ]

@@ -60,6 +60,22 @@ const api = {
       throw error;
     }
   },
+
+  /**
+   * GET /api/devices/live-status/
+   * Fetches real-time device status with latest telemetry and parking data
+   * Optimized for polling every 10 seconds
+   * @returns {Promise} Object with timestamp, devices array, and total_devices count
+   */
+  getLiveDevices: async () => {
+    try {
+      const response = await apiClient.get('/devices/live-status/');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching live device status:', error);
+      throw error;
+    }
+  },
 };
 
 export default api;
