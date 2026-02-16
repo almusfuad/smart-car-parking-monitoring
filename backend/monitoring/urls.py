@@ -1,6 +1,15 @@
 """
-Reason:
-Explicit REST endpoints as required by the spec.
+URL Configuration for Monitoring API
+
+Explicit REST endpoints organized by feature:
+- Data Ingestion: telemetry, parking logs
+- Dashboard: summary, zones, devices
+- Live Monitoring: real-time device status
+- Alerts: list, acknowledge operations
+- Analytics: usage, trends, health metrics
+- Common: facilities lookup
+
+Views are organized in feature-based modules under views/ package.
 """
 
 from django.urls import path
