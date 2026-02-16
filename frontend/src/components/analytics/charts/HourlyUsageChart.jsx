@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   BarChart,
   Bar,
@@ -10,31 +10,22 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import api from '../../../services/api';
+import useChartData from '../../../hooks/useChartData';
+import ChartContainer from '../ChartContainer';
 
 const HourlyUsageChart = ({ filters = {} }) => {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [summary, setSummary] = useState({});
+  // Use custom hook for data fetching
+  const { data, loading, error } = useChartData(
+    () => api.getHourlyUsage(filters),
+    [filters.facility, filters.zone],
+    (response) => ({
+      hourlyData: response.hourly_data || [],
+      summary: response.summary || {},
+    })
+  );
 
-  useEffect(() => {
-    fetchHourlyUsage();
-  }, [filters.facility, filters.zone]);
-
-  const fetchHourlyUsage = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await api.getHourlyUsage(filters);
-      setData(response.hourly_data || []);
-      setSummary(response.summary || {});
-    } catch (err) {
-      setError('Failed to load hourly usage data');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const hourlyData = data?.hourlyData || [];
+  const summary = data?.summary || {};
 
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
@@ -54,65 +45,40 @@ const HourlyUsageChart = ({ filters = {} }) => {
     return null;
   };
 
-  if (loading) {
-    return (
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">
-          24-Hour Parking Usage
-        </h2>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        </div>
+  // Summary display component
+  const summaryDisplay = (
+    <div className="flex gap-4 text-sm">
+      <div className="text-center">
+        <p className="text-gray-600">Total Parking</p>
+        <p className="font-semibold text-blue-600">{summary.total_parking || 0}</p>
       </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">
-          24-Hour Parking Usage
-        </h2>
-        <div className="flex items-center justify-center h-64">
-          <p className="text-red-600">{error}</p>
-        </div>
+      <div className="text-center">
+        <p className="text-gray-600">Avg Occupancy</p>
+        <p className="font-semibold text-green-600">
+          {summary.avg_occupancy ? `${summary.avg_occupancy}%` : '0%'}
+        </p>
       </div>
-    );
-  }
+      <div className="text-center">
+        <p className="text-gray-600">Peak Hour</p>
+        <p className="font-semibold text-purple-600">{summary.peak_hour || 'N/A'}</p>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold text-gray-800">
-          24-Hour Parking Usage
-        </h2>
-        {summary && (
-          <div className="flex gap-4 text-sm">
-            <div className="text-center">
-              <p className="text-gray-600">Total Parking</p>
-              <p className="font-semibold text-blue-600">{summary.total_parking || 0}</p>
-            </div>
-            <div className="text-center">
-              <p className="text-gray-600">Avg Occupancy</p>
-              <p className="font-semibold text-green-600">
-                {summary.avg_occupancy ? `${summary.avg_occupancy}%` : '0%'}
-              </p>
-            </div>
-            <div className="text-center">
-              <p className="text-gray-600">Peak Hour</p>
-              <p className="font-semibold text-purple-600">{summary.peak_hour || 'N/A'}</p>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {data.length === 0 ? (
+    <ChartContainer 
+      title="24-Hour Parking Usage" 
+      loading={loading} 
+      error={error}
+      summary={summaryDisplay}
+    >
+      {hourlyData.length === 0 ? (
         <div className="flex items-center justify-center h-64">
           <p className="text-gray-500">No data available</p>
         </div>
       ) : (
         <ResponsiveContainer width="100%" height={350}>
-          <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+          <BarChart data={hourlyData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
             <XAxis
               dataKey="hour"
@@ -135,7 +101,7 @@ const HourlyUsageChart = ({ filters = {} }) => {
           </BarChart>
         </ResponsiveContainer>
       )}
-    </div>
+    </ChartContainer>
   );
 };
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   PieChart,
   Pie,
@@ -8,6 +8,8 @@ import {
   Legend,
 } from 'recharts';
 import api from '../../../services/api';
+import useChartData from '../../../hooks/useChartData';
+import ChartContainer from '../ChartContainer';
 
 const COLORS = {
   healthy: '#10b981',
@@ -24,21 +26,11 @@ const STATUS_LABELS = {
 };
 
 const DeviceHealthChart = ({ filters = {} }) => {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [metrics, setMetrics] = useState({});
-
-  useEffect(() => {
-    fetchDeviceHealth();
-  }, [filters.facility, filters.zone]);
-
-  const fetchDeviceHealth = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await api.getDeviceHealth(filters);
-      
+  // Use custom hook for data fetching
+  const { data, loading, error } = useChartData(
+    () => api.getDeviceHealth(filters),
+    [filters.facility, filters.zone],
+    (response) => {
       // Transform device_categories to chart data
       const categories = response.device_categories || {};
       const chartData = Object.keys(categories).map(key => ({
@@ -47,15 +39,15 @@ const DeviceHealthChart = ({ filters = {} }) => {
         color: COLORS[key] || '#9ca3af',
       }));
       
-      setData(chartData);
-      setMetrics(response.metrics || {});
-    } catch (err) {
-      setError('Failed to load device health data');
-      console.error(err);
-    } finally {
-      setLoading(false);
+      return {
+        chartData,
+        metrics: response.metrics || {},
+      };
     }
-  };
+  );
+
+  const chartData = data?.chartData || [];
+  const metrics = data?.metrics || {};
 
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
@@ -99,66 +91,43 @@ const DeviceHealthChart = ({ filters = {} }) => {
     );
   };
 
-  if (loading) {
-    return (
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">
-          Device Health Status
-        </h2>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        </div>
-      </div>
-    );
-  }
+  const totalDevices = chartData.reduce((sum, item) => sum + item.value, 0);
+  const dataWithTotal = chartData.map(item => ({ ...item, total: totalDevices }));
 
-  if (error) {
-    return (
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">
-          Device Health Status
-        </h2>
-        <div className="flex items-center justify-center h-64">
-          <p className="text-red-600">{error}</p>
-        </div>
+  // Metrics summary component
+  const metricsDisplay = (
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="bg-gray-50 rounded-lg p-3">
+        <p className="text-xs text-gray-600 mb-1">Total Devices</p>
+        <p className="text-2xl font-bold text-gray-800">{metrics.total_devices || 0}</p>
       </div>
-    );
-  }
-
-  const totalDevices = data.reduce((sum, item) => sum + item.value, 0);
-  const dataWithTotal = data.map(item => ({ ...item, total: totalDevices }));
+      <div className="bg-green-50 rounded-lg p-3">
+        <p className="text-xs text-gray-600 mb-1">Healthy</p>
+        <p className="text-2xl font-bold text-green-600">{metrics.healthy_count || 0}</p>
+      </div>
+      <div className="bg-yellow-50 rounded-lg p-3">
+        <p className="text-xs text-gray-600 mb-1">Avg Health</p>
+        <p className="text-2xl font-bold text-yellow-600">
+          {metrics.avg_health_score ? `${metrics.avg_health_score}%` : '0%'}
+        </p>
+      </div>
+      <div className="bg-red-50 rounded-lg p-3">
+        <p className="text-xs text-gray-600 mb-1">Critical</p>
+        <p className="text-2xl font-bold text-red-600">{metrics.critical_count || 0}</p>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <h2 className="text-xl font-semibold text-gray-800 mb-4">
-        Device Health Status
-      </h2>
-
+    <ChartContainer 
+      title="Device Health Status" 
+      loading={loading} 
+      error={error}
+    >
       {/* Metrics Summary */}
-      {metrics && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-gray-50 rounded-lg p-3">
-            <p className="text-xs text-gray-600 mb-1">Total Devices</p>
-            <p className="text-2xl font-bold text-gray-800">{metrics.total_devices || 0}</p>
-          </div>
-          <div className="bg-green-50 rounded-lg p-3">
-            <p className="text-xs text-gray-600 mb-1">Healthy</p>
-            <p className="text-2xl font-bold text-green-600">{metrics.healthy_count || 0}</p>
-          </div>
-          <div className="bg-yellow-50 rounded-lg p-3">
-            <p className="text-xs text-gray-600 mb-1">Avg Health</p>
-            <p className="text-2xl font-bold text-yellow-600">
-              {metrics.avg_health_score ? `${metrics.avg_health_score}%` : '0%'}
-            </p>
-          </div>
-          <div className="bg-red-50 rounded-lg p-3">
-            <p className="text-xs text-gray-600 mb-1">Critical</p>
-            <p className="text-2xl font-bold text-red-600">{metrics.critical_count || 0}</p>
-          </div>
-        </div>
-      )}
+      {metricsDisplay}
 
-      {data.length === 0 || totalDevices === 0 ? (
+      {chartData.length === 0 || totalDevices === 0 ? (
         <div className="flex items-center justify-center h-64">
           <p className="text-gray-500">No device data available</p>
         </div>
@@ -192,7 +161,7 @@ const DeviceHealthChart = ({ filters = {} }) => {
           </PieChart>
         </ResponsiveContainer>
       )}
-    </div>
+    </ChartContainer>
   );
 };
 
