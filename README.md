@@ -98,9 +98,14 @@ Backend Architecture:
    ```
 
 6. **Load sample data (optional)**
-   ```bash
-   python manage.py loaddata fixtures/sample_data.json
-   ```
+   - Option A: Using fixtures
+     ```bash
+     python manage.py loaddata fixtures/sample_data.json
+     ```
+   - Option B: Using management command
+     ```bash
+     python manage.py populate_fake_data
+     ```
 
 7. **Start development server**
    ```bash
