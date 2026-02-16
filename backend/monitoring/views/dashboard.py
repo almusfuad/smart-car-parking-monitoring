@@ -7,7 +7,9 @@ including summary statistics, zone performance, and device heartbeat monitoring.
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework import status
 from datetime import datetime
+from django.utils import timezone
 
 from ..services import (
     get_dashboard_summary,
@@ -21,11 +23,24 @@ class DashboardSummaryAPIView(APIView):
     GET /api/dashboard/summary/?date=YYYY-MM-DD
     Returns dashboard summary statistics for a specific date.
     Includes total events, occupancy, active devices, and alert counts.
+    If date is not provided, defaults to today.
     """
 
     def get(self, request):
         date_str = request.query_params.get('date')
-        date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        
+        # Use today's date if not provided
+        if not date_str:
+            date = timezone.now().date()
+        else:
+            # Validate date format
+            try:
+                date = datetime.strptime(date_str, "%Y-%m-%d").date()
+            except ValueError:
+                return Response(
+                    {'error': 'Invalid date format. Expected YYYY-MM-DD'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
         
         summary = get_dashboard_summary(date)
         return Response(summary)
