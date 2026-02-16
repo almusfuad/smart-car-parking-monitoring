@@ -74,6 +74,12 @@ class AlertListAPIView(APIView):
             'alerts': serializer.data,
             **stats
         })
+            'alerts': serializer.data,
+            'total': total_alerts,
+            'acknowledged': acknowledged_count,
+            'unacknowledged': total_alerts - acknowledged_count,
+            'severity_counts': severity_counts,
+        })
 
 
 class AlertAcknowledgeAPIView(APIView):
@@ -85,15 +91,18 @@ class AlertAcknowledgeAPIView(APIView):
     """
 
     def patch(self, request, pk):
-        success, message, alert_obj = acknowledge_alert(pk)
-        
-        if not success:
+        try:
+            alert = Alert.objects.get(pk=pk)
+        except Alert.DoesNotExist:
             return Response(
-                {'error': message},
-                status=status.HTTP_404_NOT_FOUND if message == "Alert not found" else status.HTTP_400_BAD_REQUEST
+                {'error': 'Alert not found'},
+                status=status.HTTP_404_NOT_FOUND
             )
-        
-        serializer = AlertSerializer(alert_obj)
+
+        alert.acknowledged = True
+        alert.save(update_fields=['acknowledged'])
+
+        serializer = AlertSerializer(alert)
         return Response(serializer.data)
 
 
@@ -110,28 +119,25 @@ class AlertBulkAcknowledgeAPIView(APIView):
     Returns:
     {
         "status": "success",
-        "acknowledged_count": <number>,
-        "skipped_count": <number>,
-        "not_found_count": <number>,
-        "message": <string>
+        "acknowledged_count": <number>
     }
     """
 
     def post(self, request):
         alert_ids = request.data.get('alert_ids', [])
         
-        result = bulk_acknowledge_alerts(alert_ids)
-        
-        if not result['success']:
+        if not alert_ids:
             return Response(
-                {'error': result['message']},
+                {'error': 'No alert IDs provided'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
+        updated = Alert.objects.filter(
+            id__in=alert_ids,
+            is_active=True
+        ).update(acknowledged=True)
+
         return Response({
             'status': 'success',
-            'acknowledged_count': result['acknowledged_count'],
-            'skipped_count': result['skipped_count'],
-            'not_found_count': result['not_found_count'],
-            'message': result['message']
+            'acknowledged_count': updated
         })
