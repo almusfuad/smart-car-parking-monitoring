@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import HourlyUsageChart from '../components/HourlyUsageChart';
-import OccupancyTrendChart from '../components/OccupancyTrendChart';
-import DeviceHealthChart from '../components/DeviceHealthChart';
+import HourlyUsageChart from '../components/analytics/charts/HourlyUsageChart';
+import OccupancyTrendChart from '../components/analytics/charts/OccupancyTrendChart';
+import DeviceHealthChart from '../components/analytics/charts/DeviceHealthChart';
 import api from '../services/api';
 
 const AnalyticsPage = () => {

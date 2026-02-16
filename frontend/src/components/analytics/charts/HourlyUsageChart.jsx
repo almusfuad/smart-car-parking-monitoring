@@ -9,7 +9,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import api from '../services/api';
+import api from '../../../services/api';
 
 const HourlyUsageChart = ({ filters = {} }) => {
   const [data, setData] = useState([]);

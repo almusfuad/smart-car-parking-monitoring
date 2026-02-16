@@ -1,9 +1,9 @@
 import React from 'react';
-import useLiveDevices from '../hooks/useLiveDevices';
-import StatusBadge from './StatusBadge';
-import ExportButton from './ExportButton';
+import useLiveDevices from '../../hooks/useLiveDevices';
+import StatusBadge from '../shared/StatusBadge';
+import ExportButton from '../shared/ExportButton';
 import { formatDistanceToNow } from 'date-fns';
-import { exportLiveDevicesData } from '../utils/exportHelpers';
+import { exportLiveDevicesData } from '../../utils/exportHelpers';
 
 /**
  * LiveMonitoring Component

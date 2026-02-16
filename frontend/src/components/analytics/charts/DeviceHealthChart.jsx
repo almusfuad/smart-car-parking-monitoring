@@ -7,7 +7,7 @@ import {
   Tooltip,
   Legend,
 } from 'recharts';
-import api from '../services/api';
+import api from '../../../services/api';
 
 const COLORS = {
   healthy: '#10b981',

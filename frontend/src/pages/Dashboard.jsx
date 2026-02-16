@@ -1,11 +1,11 @@
 import { useState, useCallback } from 'react';
 import { format } from 'date-fns';
-import DashboardSummary from '../components/DashboardSummary';
-import DateFilter from '../components/DateFilter';
-import ZonePerformanceTable from '../components/ZonePerformanceTable';
-import DeviceHeartbeat from '../components/DeviceHeartbeat';
-import FilterPanel from '../components/FilterPanel';
-import ExportButton from '../components/ExportButton';
+import DashboardSummary from '../components/dashboard/DashboardSummary';
+import DateFilter from '../components/shared/DateFilter';
+import ZonePerformanceTable from '../components/dashboard/ZonePerformanceTable';
+import DeviceHeartbeat from '../components/dashboard/DeviceHeartbeat';
+import FilterPanel from '../components/dashboard/FilterPanel';
+import ExportButton from '../components/shared/ExportButton';
 import useDashboardData from '../hooks/useDashboardData';
 import { exportZonesData, exportDevicesData, exportDashboardSummary } from '../utils/exportHelpers';
 

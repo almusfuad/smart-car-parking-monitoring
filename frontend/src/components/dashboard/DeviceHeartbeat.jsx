@@ -3,7 +3,7 @@
  * Displays device status with last-seen information and health indicators
  */
 
-import StatusBadge from './StatusBadge';
+import StatusBadge from '../shared/StatusBadge';
 
 const DeviceHeartbeat = ({ devices, loading }) => {
   if (loading) {

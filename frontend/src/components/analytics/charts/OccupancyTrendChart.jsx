@@ -11,7 +11,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import api from '../services/api';
+import api from '../../../services/api';
 
 const OccupancyTrendChart = ({ filters = {}, days = 7 }) => {
   const [data, setData] = useState([]);

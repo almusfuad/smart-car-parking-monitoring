@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { formatDistanceToNow } from 'date-fns';
-import api from '../services/api';
-import FilterPanel from './FilterPanel';
-import ExportButton from './ExportButton';
-import { exportToCSV, exportToExcel, exportToPDF } from '../utils/exportHelpers';
+import api from '../../services/api';
+import FilterPanel from '../dashboard/FilterPanel';
+import ExportButton from '../shared/ExportButton';
+import { exportToCSV, exportToExcel, exportToPDF } from '../../utils/exportHelpers';
 
 /**
  * AlertManagementPanel Component

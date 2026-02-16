@@ -1,5 +1,5 @@
 import React from 'react';
-import AlertManagementPanel from '../components/AlertManagementPanel';
+import AlertManagementPanel from '../components/alerts/AlertManagementPanel';
 
 const AlertsPage = () => {
   return <AlertManagementPanel />;

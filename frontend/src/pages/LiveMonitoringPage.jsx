@@ -1,5 +1,5 @@
 import React from 'react';
-import LiveMonitoring from '../components/LiveMonitoring';
+import LiveMonitoring from '../components/live-monitoring/LiveMonitoring';
 
 /**
  * Live Monitoring Page

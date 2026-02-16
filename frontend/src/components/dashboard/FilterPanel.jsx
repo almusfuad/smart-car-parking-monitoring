@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import api from '../services/api';
-import SearchBar from './SearchBar';
+import api from '../../services/api';
+import SearchBar from '../shared/SearchBar';
 
 /**
  * FilterPanel Component
