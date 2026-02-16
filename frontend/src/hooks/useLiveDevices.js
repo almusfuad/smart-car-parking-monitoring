@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import api from '../services/api';
+import useAutoRefresh from './useAutoRefresh';
 
 /**
  * Custom hook for fetching live device status with auto-refresh
@@ -15,7 +16,6 @@ const useLiveDevices = (enabled = true, interval = 10000) => {
   const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
   
-  const intervalRef = useRef(null);
   const isMountedRef = useRef(true);
 
   // Fetch live device data
@@ -40,39 +40,14 @@ const useLiveDevices = (enabled = true, interval = 10000) => {
     }
   }, []);
 
+  // Use auto-refresh hook for automatic data fetching
+  useAutoRefresh(fetchData, interval, enabled);
+
   // Manual refresh function
   const refresh = useCallback(() => {
     setLoading(true);
     fetchData();
   }, [fetchData]);
-
-  // Set up auto-refresh interval
-  useEffect(() => {
-    if (!enabled) {
-      console.log('[useLiveDevices] Auto-refresh is disabled');
-      return;
-    }
-
-    console.log('[useLiveDevices] Setting up auto-refresh with interval:', interval, 'ms');
-
-    // Initial fetch
-    fetchData();
-
-    // Set up interval for auto-refresh
-    intervalRef.current = setInterval(() => {
-      console.log('[useLiveDevices] Auto-refresh triggered');
-      fetchData();
-    }, interval);
-
-    // Cleanup function
-    return () => {
-      console.log('[useLiveDevices] Cleaning up interval');
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-    };
-  }, [enabled, interval, fetchData]);
 
   // Cleanup on unmount
   useEffect(() => {
