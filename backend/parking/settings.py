@@ -13,7 +13,7 @@ SECRET_KEY = 'django-insecure-e*8m3z3wpq7=guih=yqc7&3c@b2+zx@r#+paqea+cgi)yqv&06
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 
 # Application definition
@@ -34,13 +34,25 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
 ]
+
+# CORS Configuration
+# Allow frontend to make API requests
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",  # Vite default dev server
+    "http://127.0.0.1:5173",
+]
+
+# Alternative: Allow all origins (use only in development)
+# CORS_ALLOW_ALL_ORIGINS = True
+
+CORS_ALLOW_CREDENTIALS = True
 
 ROOT_URLCONF = 'parking.urls'
 
