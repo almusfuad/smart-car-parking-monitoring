@@ -97,6 +97,58 @@ const api = {
       throw error;
     }
   },
+
+  /**
+   * GET /api/alerts/
+   * Fetches alerts with filtering options
+   * @param {Object} filters - Filter parameters (facility, zone, severity, acknowledged, is_active, search, sort_by, order)
+   * @returns {Promise} Object with alerts array and summary statistics
+   */
+  getAlerts: async (filters = {}) => {
+    try {
+      const response = await apiClient.get('/alerts/', {
+        params: filters,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching alerts:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * PATCH /api/alerts/<id>/acknowledge/
+   * Acknowledges a single alert
+   * @param {number} alertId - Alert ID to acknowledge
+   * @returns {Promise} Updated alert data
+   */
+  acknowledgeAlert: async (alertId) => {
+    try {
+      const response = await apiClient.patch(`/alerts/${alertId}/acknowledge/`);
+      return response.data;
+    } catch (error) {
+      console.error('Error acknowledging alert:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * POST /api/alerts/bulk-acknowledge/
+   * Acknowledges multiple alerts at once
+   * @param {Array<number>} alertIds - Array of alert IDs to acknowledge
+   * @returns {Promise} Object with status and acknowledged_count
+   */
+  bulkAcknowledgeAlerts: async (alertIds) => {
+    try {
+      const response = await apiClient.post('/alerts/bulk-acknowledge/', {
+        alert_ids: alertIds,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error bulk acknowledging alerts:', error);
+      throw error;
+    }
+  },
 };
 
 export default api;

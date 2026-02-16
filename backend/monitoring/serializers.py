@@ -7,7 +7,7 @@ Device resolution by code.
 
 from rest_framework import serializers
 from django.utils import timezone
-from .models import Device, TelemetryData, ParkingLog
+from .models import Device, TelemetryData, ParkingLog, Alert
 
 
 class TelemetrySerializer(serializers.ModelSerializer):
@@ -54,3 +54,24 @@ class ParkingLogSerializer(serializers.ModelSerializer):
         code = validated_data.pop('device_code')
         device = Device.objects.filter(code=code).first()
         return ParkingLog.objects.create(device=device, **validated_data)
+
+
+class AlertSerializer(serializers.ModelSerializer):
+    device_code = serializers.CharField(source='device.code', read_only=True)
+    facility_name = serializers.CharField(source='device.zone.facility.name', read_only=True)
+    zone_name = serializers.CharField(source='device.zone.name', read_only=True)
+
+    class Meta:
+        model = Alert
+        fields = [
+            'id',
+            'device_code',
+            'facility_name',
+            'zone_name',
+            'message',
+            'severity',
+            'is_active',
+            'acknowledged',
+            'created_at'
+        ]
+        read_only_fields = ['id', 'created_at']

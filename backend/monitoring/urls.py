@@ -13,6 +13,9 @@ from .views import (
     DevicesHeartbeatAPIView,
     LiveDeviceStatusAPIView,
     FacilitiesListAPIView,
+    AlertListAPIView,
+    AlertAcknowledgeAPIView,
+    AlertBulkAcknowledgeAPIView,
 )
 
 
@@ -25,4 +28,7 @@ urlpatterns = [
     path('dashboard/devices-hearbeat/', DevicesHeartbeatAPIView.as_view(), name='devices-heartbeat'),
     path('devices/live-status/', LiveDeviceStatusAPIView.as_view(), name='live-device-status'),
     path('facilities/', FacilitiesListAPIView.as_view(), name='facilities-list'),
+    path('alerts/', AlertListAPIView.as_view(), name='alert-list'),
+    path('alerts/<int:pk>/acknowledge/', AlertAcknowledgeAPIView.as_view(), name='alert-acknowledge'),
+    path('alerts/bulk-acknowledge/', AlertBulkAcknowledgeAPIView.as_view(), name='alert-bulk-acknowledge'),
 ]
