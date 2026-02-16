@@ -34,11 +34,14 @@ const api = {
   /**
    * GET /api/dashboard/zones-performances/
    * Fetches zone-wise performance metrics
+   * @param {Object} filters - Filter parameters (facility, zone, search, sort_by, order)
    * @returns {Promise} Array of zone performance data
    */
-  getZonesPerformance: async () => {
+  getZonesPerformance: async (filters = {}) => {
     try {
-      const response = await apiClient.get('/dashboard/zones-performances/');
+      const response = await apiClient.get('/dashboard/zones-performances/', {
+        params: filters,
+      });
       return response.data;
     } catch (error) {
       console.error('Error fetching zones performance:', error);
@@ -49,11 +52,14 @@ const api = {
   /**
    * GET /api/dashboard/devices-hearbeat/
    * Fetches device status with last-seen timestamps
+   * @param {Object} filters - Filter parameters (facility, zone, status, search, sort_by, order)
    * @returns {Promise} Array of device heartbeat data
    */
-  getDevicesHeartbeat: async () => {
+  getDevicesHeartbeat: async (filters = {}) => {
     try {
-      const response = await apiClient.get('/dashboard/devices-hearbeat/');
+      const response = await apiClient.get('/dashboard/devices-hearbeat/', {
+        params: filters,
+      });
       return response.data;
     } catch (error) {
       console.error('Error fetching devices heartbeat:', error);
@@ -73,6 +79,21 @@ const api = {
       return response.data;
     } catch (error) {
       console.error('Error fetching live device status:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * GET /api/facilities/
+   * Fetches list of all facilities with their zones
+   * @returns {Promise} Array of facilities with zones
+   */
+  getFacilities: async () => {
+    try {
+      const response = await apiClient.get('/facilities/');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching facilities:', error);
       throw error;
     }
   },

@@ -13,7 +13,7 @@ from django.db.models import Count, Q, Max
 from django.utils import timezone
 from datetime import datetime, timedelta
 
-from .models import TelemetryData, ParkingLog, Alert, Device, ParkingZone
+from .models import TelemetryData, ParkingLog, Alert, Device, ParkingZone, ParkingFacility
 from .serializers import TelemetrySerializer, ParkingLogSerializer
 from .services import check_high_power, calculate_device_health, calculate_power
 
@@ -96,9 +96,35 @@ class DashboardSummaryAPIView(APIView):
 
 
 class ZonesPerformanceAPIView(APIView):
+    """
+    GET /api/dashboard/zones-performances/
+    Query Parameters:
+    - facility: Filter by facility ID
+    - zone: Filter by zone ID
+    - search: Search by zone or facility name
+    - sort_by: Sort by field (utilization, alerts, name) default: name
+    - order: Sort order (asc, desc) default: asc
+    """
 
     def get(self, request):
         zones = ParkingZone.objects.select_related('facility').prefetch_related('devices').all()
+        
+        # Apply filters
+        facility_id = request.query_params.get('facility')
+        zone_id = request.query_params.get('zone')
+        search_query = request.query_params.get('search', '').strip()
+        
+        if facility_id:
+            zones = zones.filter(facility_id=facility_id)
+        
+        if zone_id:
+            zones = zones.filter(id=zone_id)
+        
+        if search_query:
+            zones = zones.filter(
+                Q(name__icontains=search_query) | 
+                Q(facility__name__icontains=search_query)
+            )
         
         zones_data = []
         for zone in zones:
@@ -124,6 +150,7 @@ class ZonesPerformanceAPIView(APIView):
                 'id': zone.id,
                 'name': zone.name,
                 'facility': zone.facility.name,
+                'facility_id': zone.facility.id,
                 'total_devices': total_devices,
                 'occupied_slots': occupied_slots,
                 'daily_capacity': zone.daily_capacity,
@@ -131,14 +158,55 @@ class ZonesPerformanceAPIView(APIView):
                 'active_alerts': active_alerts,
             })
         
+        # Apply sorting
+        sort_by = request.query_params.get('sort_by', 'name')
+        order = request.query_params.get('order', 'asc')
+        
+        sort_field_map = {
+            'name': 'name',
+            'utilization': 'utilization_percentage',
+            'alerts': 'active_alerts',
+            'facility': 'facility',
+        }
+        
+        sort_field = sort_field_map.get(sort_by, 'name')
+        reverse = (order == 'desc')
+        
+        zones_data.sort(key=lambda x: x[sort_field], reverse=reverse)
+        
         return Response(zones_data)
 
 
 class DevicesHeartbeatAPIView(APIView):
+    """
+    GET /api/dashboard/devices-hearbeat/
+    Query Parameters:
+    - facility: Filter by facility ID
+    - zone: Filter by zone ID
+    - status: Filter by status (OK, WARNING, CRITICAL)
+    - search: Search by device code
+    - sort_by: Sort by field (code, health, status) default: code
+    - order: Sort order (asc, desc) default: asc
+    """
 
     def get(self, request):
         devices = Device.objects.select_related('zone__facility').all()
         now = timezone.now()
+        
+        # Apply filters
+        facility_id = request.query_params.get('facility')
+        zone_id = request.query_params.get('zone')
+        status_filter = request.query_params.get('status')
+        search_query = request.query_params.get('search', '').strip()
+        
+        if facility_id:
+            devices = devices.filter(zone__facility_id=facility_id)
+        
+        if zone_id:
+            devices = devices.filter(zone_id=zone_id)
+        
+        if search_query:
+            devices = devices.filter(code__icontains=search_query)
         
         devices_data = []
         for device in devices:
@@ -158,6 +226,10 @@ class DevicesHeartbeatAPIView(APIView):
                     status_label = 'CRITICAL'
                     status_message = 'Offline'
             
+            # Apply status filter
+            if status_filter and status_label != status_filter:
+                continue
+            
             # Get active alerts for this device
             alerts = Alert.objects.filter(
                 device=device,
@@ -171,7 +243,9 @@ class DevicesHeartbeatAPIView(APIView):
                 'id': device.id,
                 'code': device.code,
                 'zone': device.zone.name,
+                'zone_id': device.zone.id,
                 'facility': device.zone.facility.name,
+                'facility_id': device.zone.facility.id,
                 'is_active': device.is_active,
                 'last_seen': device.last_seen.isoformat() if device.last_seen else None,
                 'status': status_label,
@@ -180,6 +254,23 @@ class DevicesHeartbeatAPIView(APIView):
                 'active_alerts': list(alerts),
                 'alerts_count': len(alerts),
             })
+        
+        # Apply sorting
+        sort_by = request.query_params.get('sort_by', 'code')
+        order = request.query_params.get('order', 'asc')
+        
+        sort_field_map = {
+            'code': 'code',
+            'health': 'health_score',
+            'status': 'status',
+            'zone': 'zone',
+            'facility': 'facility',
+        }
+        
+        sort_field = sort_field_map.get(sort_by, 'code')
+        reverse = (order == 'desc')
+        
+        devices_data.sort(key=lambda x: x[sort_field], reverse=reverse)
         
         return Response(devices_data)
 
@@ -274,3 +365,25 @@ class LiveDeviceStatusAPIView(APIView):
             'devices': live_data,
             'total_devices': len(live_data),
         })
+
+
+class FacilitiesListAPIView(APIView):
+    """
+    GET /api/facilities/
+    Returns list of all parking facilities with their zones
+    """
+
+    def get(self, request):
+        facilities = ParkingFacility.objects.prefetch_related('zones').all()
+        
+        facilities_data = []
+        for facility in facilities:
+            zones = facility.zones.all().values('id', 'name', 'daily_capacity')
+            facilities_data.append({
+                'id': facility.id,
+                'name': facility.name,
+                'zones': list(zones),
+                'zones_count': len(zones),
+            })
+        
+        return Response(facilities_data)

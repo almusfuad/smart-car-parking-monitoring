@@ -4,8 +4,10 @@ import api from '../services/api';
 /**
  * Custom hook for fetching all dashboard data
  * Fetches summary, zones performance, and device heartbeat data
+ * @param {string} date - Date in YYYY-MM-DD format
+ * @param {Object} filters - Filter parameters for zones and devices
  */
-const useDashboardData = (date) => {
+const useDashboardData = (date, filters = {}) => {
   const [data, setData] = useState({
     summary: null,
     zones: null,
@@ -23,8 +25,8 @@ const useDashboardData = (date) => {
         // Fetch all data in parallel
         const [summaryResult, zonesResult, devicesResult] = await Promise.all([
           api.getDashboardSummary(date),
-          api.getZonesPerformance(),
-          api.getDevicesHeartbeat(),
+          api.getZonesPerformance(filters),
+          api.getDevicesHeartbeat(filters),
         ]);
 
         setData({
@@ -43,7 +45,7 @@ const useDashboardData = (date) => {
     if (date) {
       fetchData();
     }
-  }, [date]);
+  }, [date, JSON.stringify(filters)]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return { data, loading, error };
 };

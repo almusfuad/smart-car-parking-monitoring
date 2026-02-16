@@ -1,18 +1,24 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { format } from 'date-fns';
 import DashboardSummary from '../components/DashboardSummary';
 import DateFilter from '../components/DateFilter';
 import ZonePerformanceTable from '../components/ZonePerformanceTable';
 import DeviceHeartbeat from '../components/DeviceHeartbeat';
+import FilterPanel from '../components/FilterPanel';
 import useDashboardData from '../hooks/useDashboardData';
 
 const Dashboard = () => {
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  const { data, loading, error } = useDashboardData(selectedDate);
+  const [filters, setFilters] = useState({});
+  const { data, loading, error } = useDashboardData(selectedDate, filters);
 
   const handleDateChange = (newDate) => {
     setSelectedDate(newDate);
   };
+
+  const handleFilterChange = useCallback((newFilters) => {
+    setFilters(newFilters);
+  }, []);
 
   return (
     <div>
@@ -28,6 +34,9 @@ const Dashboard = () => {
 
       {/* Date Filter */}
       <DateFilter selectedDate={selectedDate} onDateChange={handleDateChange} />
+
+      {/* Filter Panel */}
+      <FilterPanel onFilterChange={handleFilterChange} showStatusFilter={true} />
 
       {/* Error Message */}
       {error && (
@@ -58,7 +67,12 @@ const Dashboard = () => {
       {/* Footer Info */}
       <div className="mt-6 text-center text-sm text-gray-500">
         <p>Last updated: {new Date().toLocaleString()}</p>
-        <p className="mt-1">Showing data for {selectedDate}</p>
+        <p className="mt-1">
+          Showing data for {selectedDate}
+          {filters.facility && ' • Filtered by facility'}
+          {filters.zone && ' • Filtered by zone'}
+          {filters.status && ` • Status: ${filters.status}`}
+        </p>
       </div>
     </div>
   );
